@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Vehicle Parking System{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>👑 Admin Dashboard</h1>
+        <p>Manage parking lots and monitor system performance</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ lots|length }}</div>
+            <div class="stat-label">Parking Lots</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_spots }}</div>
+            <div class="stat-label">Total Spots</div>
+        </div>
+        <div class="stat-card occupied">
+            <div class="stat-number">{{ occupied_spots }}</div>
+            <div class="stat-label">Occupied</div>
+        </div>
+        <div class="stat-card available">
+            <div class="stat-number">{{ available_spots }}</div>
+            <div class="stat-label">Available</div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <h3>Overall Occupancy</h3>
+        <div class="chart-bar">
+            <div class="chart-fill" style="width: {{ occupancy_percentage }}%">
+                <span class="chart-label">{{ "%.1f"|format(occupancy_percentage) }}%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('admin_add_lot') }}" class="btn btn-primary">➕ Add Parking Lot</a>
+        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">👥 View Users</a>
+        <a href="{{ url_for('admin_reservations') }}" class="btn btn-secondary">📊 View Reservations</a>
+    </div>
+
+    <div class="search-container">
+        <form method="GET" action="{{ url_for('admin_search') }}" class="search-form">
+            <input type="text" name="q" placeholder="Search parking lots...">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+
+    <div class="lots-section">
+        <h3>Parking Lots</h3>
+        {% if lots %}
+            <div class="lots-grid">
+                {% for lot in lots %}
+                    <div class="lot-card">
+                        <div class="lot-header">
+                            <h4>{{ lot.location_name }}</h4>
+                            <div class="lot-occupancy">
+                                {{ lot.occupied_spots }}/{{ lot.max_spots }}
+                            </div>
+                        </div>
+                        
+                        <div class="lot-info">
+                            <p><strong>Address:</strong> {{ lot.address }}</p>
+                            <p><strong>Pincode:</strong> {{ lot.pincode }}</p>
+                            <p><strong>Price:</strong> ₹{{ lot.price }}/hour</p>
+                        </div>
+                        
+                        <div class="spots-visualization">
+                            {% for spot in lot.spots %}
+                                <div class="spot-indicator {{ 'occupied' if spot.status == 'O' else 'available' }}"></div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="lot-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ lot.occupancy_percentage }}%"></div>
+                            </div>
+                            <span class="progress-text">{{ "%.1f"|format(lot.occupancy_percentage) }}% occupied</span>
+                        </div>
+                        
+                        <div class="lot-actions">
+                            <a href="{{ url_for('admin_edit_lot', lot_id=lot.id) }}" class="btn btn-small btn-secondary">✏️ Edit</a>
+                            {% if lot.occupied_spots == 0 %}
+                                <a href="{{ url_for('admin_delete_lot', lot_id=lot.id) }}" 
+                                   class="btn btn-small btn-danger"
+                                   onclick="return confirm('Are you sure you want to delete this parking lot?')">🗑️ Delete</a>
+                            {% else %}
+                                <span class="btn btn-small btn-disabled">🗑️ Cannot Delete</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h4>No parking lots found</h4>
+                <p>Start by adding your first parking lot</p>
+                <a href="{{ url_for('admin_add_lot') }}" class="btn btn-primary">➕ Add Parking Lot</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

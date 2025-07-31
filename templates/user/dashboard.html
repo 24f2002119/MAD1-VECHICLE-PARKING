@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}User Dashboard - Vehicle Parking System{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1><i class="bi bi-person-circle"></i> Welcome, {{ session.user_name }}!</h1>
+        <p>Find and book available parking spots</p>
+    </div>
+
+    {% if active_reservations %}
+        <div class="active-reservations mb-5">
+            <h3><i class="bi bi-car-front"></i> Your Active Reservations</h3>
+            <div class="reservations-grid">
+                {% for reservation in active_reservations %}
+                    <div class="reservation-card active">
+                        <div class="reservation-header">
+                            <h4>{{ reservation.spot.lot.location_name }}</h4>
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                        <div class="reservation-info">
+                            <p><i class="bi bi-geo-alt"></i> <strong>Address:</strong> {{ reservation.spot.lot.address }}</p>
+                            <p><i class="bi bi-123"></i> <strong>Spot ID:</strong> {{ reservation.spot_id }}</p>
+                            <p><i class="bi bi-clock"></i> <strong>Check In:</strong> {{ reservation.in_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p><i class="bi bi-cash-coin"></i> <strong>Rate:</strong> ${{ reservation.spot.lot.price }}/hour</p>
+                        </div>
+                        <form method="POST" action="{{ url_for('user_release_spot', reservation_id=reservation.id) }}">
+                            <button type="submit" class="btn btn-danger w-100" 
+                                    onclick="return confirm('Are you sure you want to release this parking spot?')">
+                                <i class="bi bi-box-arrow-right"></i> Release Spot
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="lots-section">
+        <h3><i class="bi bi-p-square"></i> Available Parking Lots</h3>
+        
+        {% if nearby_lots %}
+            <div class="lots-grid">
+                {% for lot in nearby_lots %}
+                    <div class="lot-card">
+                        <div class="lot-header">
+                            <h4>{{ lot.location_name }}</h4>
+                            <div class="lot-availability">
+                                <span class="available-count">{{ lot.spots|selectattr('status', 'equalto', 'A')|list|length }}</span>
+                                <span>spots available</span>
+                            </div>
+                        </div>
+                        
+                        <div class="lot-info">
+                            <p><i class="bi bi-geo-alt"></i> <strong>Address:</strong> {{ lot.address }}</p>
+                            <p><i class="bi bi-pin-map"></i> <strong>Pincode:</strong> {{ lot.pincode }}</p>
+                            <p><i class="bi bi-cash-stack"></i> <strong>Price:</strong> ₹{{ lot.price }}/hour</p>
+                        </div>
+                        
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-success" 
+                                 style="width: {{ ((lot.spots|selectattr('status', 'equalto', 'A')|list|length / lot.max_spots) * 100) }}%">
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {% if lot.spots|selectattr('status', 'equalto', 'A')|list|length > 0 %}
+                                <a href="{{ url_for('user_book_spot', lot_id=lot.id) }}" 
+                                   class="btn btn-primary">
+                                    <i class="bi bi-bookmark-check"></i> Book Now
+                                </a>
+                            {% else %}
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="bi bi-slash-circle"></i> Fully Occupied
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <h4><i class="bi bi-info-circle"></i> No parking lots available</h4>
+                <p>All parking lots in your area are currently full. Please try again later.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Refresh the page every 30 seconds to get updated spot availability
+    setTimeout(function(){
+        window.location.reload(1);
+    }, 30000);
+</script>
+{% endblock %}
