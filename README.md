@@ -111,4 +111,4 @@ Database and admin user are created automatically on first run.
 * ✅ Milestone 3: Admin Dashboard + Lot/Spot Management
 * ✅ Milestone 4: User Dashboard + Reservation System
 * ✅ Milestone 5: Parking History Summary
-* ✅ Milestone 6: Cost Calculation Module
+* ✅ Milestone 6: Cost Calculation 
